@@ -1,84 +1,83 @@
 # Eigo-Mt-Fuji redash
 
-[![Redash 5.0.2](https://img.shields.io/badge/redash-v5.0.2-ff7964.svg)](https://github.com/getredash/redash)
+[! [Redash 5.0.2] (https://img.shields.io/badge/redash-v5.0.2-ff7964.svg)] (https://github.com/getredash/redash)
 
-## 構成図
-* 以下の赤枠部分
+## Diagram
+* Red frame below
 
-![re:dash architecture](./docs/redash.png)
+! [re: dash architecture] (./ docs / redash.png)
 
-## 事前準備
-* [re:dashのdev-guide](https://redash.io/help/open-source/dev-guide/setup)を読んでおく
+## Advance preparation
+* Read [re: dash's dev-guide] (https://redash.io/help/open-source/dev-guide/setup)
 
-* AWS CloudWatch Log Groupを作成
-  * `/aws/elasticbeanstalk/Test2-env-1/redash` と仮定
-  * 変更したい場合は Dockerrun.aws.jsonの `logConfiguration` を置き換え
-* ElasticBeanstalkアプリケーション作成
-  * Platform: Multi docker container
-  * Single Instance 
-* RDS for Postgres 9.5 を作成
-  * 代替案: Dockerrun.aws.jsonのcontainerDefinitionsにpostgresを追加
-  * Dockerrun.aws.jsonの 環境変数 `REDASH_DATABASE_URL` に作成したインスタンス接続情報を適用
-  * [RedashのDDL](./resources/redash-data.sql)を、作成したインスタンスのpostgresスキーマ上にリストア
-* ElastiCache(Redis) を作成
-  * 代替案: Dockerrun.aws.jsonのcontainerDefinitionsにredisを追加
-  * Dockerrun.aws.jsonの 環境変数 `REDASH_REDIS_URL` に作成したインスタンス接続情報を適用
+* Create AWS CloudWatch Log Group
+  * Assuming `/ aws / elasticbeanstalk / Test2-env-1 / redash`
+  * Replace `logConfiguration` in Dockerrun.aws.json if you want to change
+* Create ElasticBeanstalk application
+  * Platform: Multi docker container
+  * Single Instance
+* Create RDS for Postgres 9.5
+  * Alternative: add postgres to containerDefinitions in Dockerrun.aws.json
+  * Apply the instance connection information created in the environment variable `REDASH_DATABASE_URL` of Dockerrun.aws.json
+  * [Dash of Redash] (./ resources / redash-data.sql) is restored on postgres schema of created instance
+* Create ElastiCache (Redis)
+  * Alternative: Add redis to containerDefinitions in Dockerrun.aws.json
+  * Apply the instance connection information created in the environment variable `REDASH_REDIS_URL` of Dockerrun.aws.json
 
-* デプロイツール[eb cli](https://docs.aws.amazon.com/ja_jp/elasticbeanstalk/latest/dg/eb-cli3-install-osx.html)をセットアップ
+* Set up the deployment tool [eb cli] (https://docs.aws.amazon.com/ja_jp/elasticbeanstalk/latest/dg/eb-cli3-install-osx.html)
 
-## デプロイ(Dockerrun.aws.jsonをElasticBeanstalkにデプロイ)
+## Deploy (Deploy Dockerrun.aws.json to ElasticBeanstalk)
 
-* init (初回) 
+* init (first time)
 
-```
+`` `
 $ eb init --profile {profile} test2
-```
+`` `
 
-* deploy (test2アプリケーション上のTest2-env-1にデプロイ)
+* deploy (deploy to Test2-env-1 on test2 application)
 
-```
+`` `
 $ eb deploy --profile {profile} Test2-env-1
-```
+`` `
 
-## 参考
+## Reference
 
 * Redash docker-compose in local
 
-```
+`` `
 # create base pg_dump (only github maintainer)
 $ git clone github.com/getredash/redash.git redash-original
 $ cd redash-original
-$ docker-compose build # if no ports mapping for postgresql, add 15432:5432 before build.
+$ docker-compose build # if no ports mapping for postgresql, add 15432: 5432 before build.
 $ docker-compose up
-```
+`` `
 
-* Redash DDL取得 (local)
+* Get Redash DDL (local)
 
-```
+`` `
 # drop schema (only if reset required.)
 
-$ psql -h127.0.0.1  --port 15432 -Upostgres 
+$ psql -h127.0.0.1 --port 15432 -Upostgres
 drop schema public cascade;
 create schema public;
 
-# create table in docker container(only at first contact)
-$ docker exec -it {redash server container_id} /bin/bash
-bin/run ./manage.py database create_tables
-$ pg_dump -h127.0.0.1  --port 15432 -Upostgres postgres > resources/redash-data.sql
-```
+# create table in docker container (only at first contact)
+$ docker exec -it {redash server container_id} / bin / bash
+bin / run ./manage.py database create_tables
+$ pg_dump -h127.0.0.1 --port 15432 -Upostgres postgres> resources / redash-data.sql
+`` `
 
-* Redashテーブル作成(AWS)
+* Redash table creation (AWS)
 
-```
+`` `
 # create tables
 redash-db-ssh # connect to postgresql on aws
-redash-db < resources/redash-data.sql # restore
-```
+redash-db <resources / redash-data.sql # restore
+`` `
 
-* 参考
+* Reference
 
-```
+`` `
 https://redash.io/help/open-source/dev-guide/setup
 https://stackoverflow.com/questions/32311366/alembic-util-command-error-cant-find-identifier
 https://qiita.com/a-suenami/items/e231adc2e083ef9449f6
-```
